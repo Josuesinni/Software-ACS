@@ -160,7 +160,10 @@ public class NuevoApartado extends JPanel {
                 menu.setImporte(txtImporte);
                 menu.setCambio(lblCambio);
                 menu.setValorAnticipo(lblAnticipo.getText().substring(1));
-
+                if (cmbMetodoPago.getSelectedIndex() == 1) {
+                    txtImporte.setText(lblTotal.getText().substring(1));
+                }
+                actualizarCambio();
             }
         });
 
@@ -267,6 +270,10 @@ public class NuevoApartado extends JPanel {
                     dft.removeRow(row);
                     eliminando = false;
                     actualizarTotal();
+                    if (cmbMetodoPago.getSelectedIndex() == 1) {
+                        txtImporte.setText(lblTotal.getText().substring(1));
+                    }
+                    actualizarCambio();
                 }
             }
 
@@ -315,7 +322,7 @@ public class NuevoApartado extends JPanel {
         buscadorClientes = new Buscador();
         buscadorClientes.changePopupSize(280, 60);
         buscadorClientes.setBuscar(txtCliente);
-        
+
         JButtonRounded btnBuscarCliente = new JButtonRounded(20);
         btnBuscarCliente.setLocation(1380, 180);
         btnBuscarCliente.setSize(50, 50);
@@ -410,7 +417,7 @@ public class NuevoApartado extends JPanel {
                 if (e.getSource() == cmbMetodoPago) {
                     if (e.getItem().toString().equals("Transferencia")) {
                         txtImporte.setEditable(false);
-                        txtImporte.setText(lblTotal.getText().substring(1));
+                        txtImporte.setText(lblAnticipo.getText().substring(1));
                         actualizarCambio();
                     } else {
                         txtImporte.setEditable(true);
@@ -443,15 +450,7 @@ public class NuevoApartado extends JPanel {
         txtImporte.setHorizontalAlignment(JTextField.LEFT);
         txtImporte.setLocation(30, 0);
         txtImporte.setSize(90, 40);
-        txtImporte.addKeyListener(new KeyListener() {
-            @Override
-            public void keyTyped(KeyEvent e) {
-            }
-
-            @Override
-            public void keyPressed(KeyEvent e) {
-            }
-
+        txtImporte.addKeyListener(new KeyAdapter() {
             @Override
             public void keyReleased(KeyEvent e) {
                 actualizarCambio();
@@ -543,21 +542,33 @@ public class NuevoApartado extends JPanel {
 
     private void operacion() {
         String cliente = txtCliente.getText();
-        if (GestionApartados.registrarApartado(cliente)) {
-            if (GestionApartados.registarProductoApartado(tblLista, Integer.parseInt(folio))) {
+        if (!cliente.isEmpty()) {
+            if (GestionClientes.existeCliente(cliente)) {
                 double anticipo = lblAnticipo.getText().isEmpty() ? 0.00 : Double.parseDouble(lblAnticipo.getText().substring(1));
-                if (GestionPagos.registrarPago(folio, anticipo, (cmbMetodoPago.getSelectedIndex() != 0))) {
-                    GestionApartados.vistaApartados(tblListaApartados);
-                    new Notificacion(0, "Apartado creado exitosamente", false);
-                    cp.panelAnterior(cp.panelActual());
+                double importe = txtImporte.getText().isEmpty() ? 0.00 : Double.parseDouble(txtImporte.getText());
+                if (importe < anticipo) {
+                    new Notificacion(1, "Error al registrar el apartado. El importe es menor que el anticipo.", false);
                 } else {
-                    new Notificacion(1, "Error en la base de datos al registrar el pago", false);
+                    if (GestionApartados.registrarApartado(cliente)) {
+                        if (GestionApartados.registarProductoApartado(tblLista, Integer.parseInt(folio))) {
+                            if (GestionPagos.registrarPago(folio, anticipo, (cmbMetodoPago.getSelectedIndex() != 0))) {
+                                GestionApartados.vistaApartados(tblListaApartados);
+                                new Notificacion(0, "Apartado creado exitosamente", false);
+                                cp.panelAnterior(cp.panelActual());
+                                limpiar();
+                            } else {
+                                new Notificacion(1, "Error en la base de datos al registrar el pago", false);
+                            }
+                        } else {
+                            new Notificacion(1, "Error en la base de datos al registrar detalle apartado", false);
+                        }
+                    }
                 }
             } else {
-                new Notificacion(1, "Error en la base de datos al registrar detalle apartado", false);
+                new Notificacion(1, "Error se requiere un cliente valido para poder registrar el apartado", false);
             }
         } else {
-            new Notificacion(1, "Error: Cliente no encontrado, favor de registrarlo primero", false);
+            new Notificacion(1, "Error se requiere un cliente valido para poder registrar el apartado", false);
         }
     }
 

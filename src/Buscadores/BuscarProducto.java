@@ -93,8 +93,10 @@ public class BuscarProducto extends JDialog {
         btnAceptar.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                addProductoTablaVenta();
-                dispose();
+                if (tblLista.getSelectedRow() != -1) {
+                    addProductoTablaVenta();
+                    dispose();
+                }
             }
         });
         pnl.add(btnAceptar);

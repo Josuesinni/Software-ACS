@@ -88,13 +88,17 @@ public class Venta extends JPanel {
         txtBuscar.setLocation(100, 180);
         txtBuscar.setSize(460, 50);
         txtBuscar.addKeyListener(new KeyAdapter() {
+            @Override
             public void keyTyped(KeyEvent e) {
                 if (e.getKeyChar() == 10) {
                     String producto = txtBuscar.getText();
                     if (GestionProductos.existeProducto(producto)) {
                         if (!buscarIgualdades(producto)) {
                             GestionProductos.addProductoLista(producto, tblLista);
-                            tblLista.setPreferredSize(new Dimension(900, tblLista.getRowCount() * 37));
+                            tblLista.setPreferredSize(new Dimension(900, 333));
+                            if (tblLista.getRowCount() > 9) {
+                                tblLista.setPreferredSize(new Dimension(900, 333 + tblLista.getRowCount() * 37));
+                            }
                         } else {
                             actualizarSubtotal();
                         }
@@ -105,6 +109,7 @@ public class Venta extends JPanel {
                 }
             }
 
+            @Override
             public void keyReleased(KeyEvent e) {
                 if (!txtBuscar.getText().isEmpty()) {
                     if (e.getKeyCode() != 10) {
@@ -134,6 +139,8 @@ public class Venta extends JPanel {
         btnBuscar.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
+                //c.cancelCellEditing();
+                //tblLista.clearSelection();
                 BuscarProducto bp = new BuscarProducto(true, "Venta - Buscar producto", tblLista);
                 actualizarTotal();
                 if (cmbMetodoPago.getSelectedItem().toString().equals("Transferencia")) {
@@ -201,12 +208,19 @@ public class Venta extends JPanel {
             @Override
             public void valueChanged(ListSelectionEvent e) {
                 if (e.getValueIsAdjusting()) {
+                    //
                     /*if (!eliminando) {
-                        c.setMaximumInput(GestionProductos.cantidadProductoExistente(tblLista.getValueAt(tblLista.getSelectedRow(), 0).toString()));
+                        if (tblLista.getSelectedRow() != -1) {
+                            c.setMaximumInput(GestionProductos.cantidadProductoExistente(tblLista.getValueAt(tblLista.getSelectedRow(), 0).toString()));
+                        }
                     }*/
-                    if (tblLista.getRowCount() > 0) {
+                    if (tblLista.getSelectedRow() != -1) {
                         c.setMaximumInput(GestionProductos.cantidadProductoExistente(tblLista.getValueAt(tblLista.getSelectedRow(), 0).toString()));
                     }
+                    //tblLista.clearSelection();
+                    /*if (tblLista.getRowCount() > 0) {
+                        
+                    }*/
                 }
             }
         });
@@ -214,7 +228,7 @@ public class Venta extends JPanel {
         JScrollPane jsp1 = new JScrollPane();
         jsp1.setBackground(new java.awt.Color(255, 255, 255));
         jsp1.setSize(new java.awt.Dimension(900, 380));
-        jsp1.setPreferredSize(new java.awt.Dimension(900, 380));
+        jsp1.setPreferredSize(new java.awt.Dimension(900, 333));
         jsp1.setRowHeaderView(null);
         ScrollBarCustom sb = new ScrollBarCustom();
         sb.setUnitIncrement(37);
@@ -428,7 +442,7 @@ public class Venta extends JPanel {
                             cliente = "Publico General";
                         }
                         if (GestionClientes.existeCliente(txtCliente.getText())) {
-                            if (GestionVentas.registrarVenta(1, cliente,cmbMetodoPago.getSelectedIndex())) {
+                            if (GestionVentas.registrarVenta(1, cliente, cmbMetodoPago.getSelectedIndex())) {
                                 if (GestionVentas.registarProductoVenta(tblLista, Integer.parseInt(folio))) {
                                     Notificacion n = new Notificacion(3, "¿Desea imprimir el ticket de la venta?", true);
                                     if (n.getRespuesta()) {
@@ -457,7 +471,7 @@ public class Venta extends JPanel {
                             } else {
                                 new Notificacion(1, "Error al registrar la venta. Ha ocurrido un problema con la base de datos.", false);
                             }
-                        }else{
+                        } else {
                             new Notificacion(1, "Error al registrar la venta. El cliente no existe", false);
                         }
                     }
@@ -486,10 +500,15 @@ public class Venta extends JPanel {
                         tblLista.getCellEditor().stopCellEditing();
                     }
                     DefaultTableModel dft = (DefaultTableModel) tblLista.getModel();
+                    //c.eliminarItem();
                     dft.removeRow(row);
                     eliminando = false;
                     actualizarTotal();
+                    if (cmbMetodoPago.getSelectedIndex()==1) {
+                        txtImporte.setText(lblTotal.getText().substring(1));
+                    }
                     actualizarCambio();
+                    
                 }
             }
 

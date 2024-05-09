@@ -111,6 +111,37 @@ public class GestionVentas {
         }
         return Miscelanea.procedimiento(sql);
     }
+    
+     public static ResultSet vistaVentasDe(String nombre, String fechaIni, String fechaFin, String estado) {
+        String OLD_FORMAT = "dd-MM-yyyy";
+        String NEW_FORMAT = "yyyy-MM-dd";
+        String inicioFN = null, finFN = null;
+        String sql = "";
+        SimpleDateFormat sdf = new SimpleDateFormat(OLD_FORMAT);
+        Date inicio, fin;
+        try {
+            inicio = sdf.parse(fechaIni);
+            fin = sdf.parse(fechaFin);
+            sdf.applyPattern(NEW_FORMAT);
+            inicioFN = sdf.format(inicio);
+            finFN = sdf.format(fin);
+            sql = "SELECT Folio,Nombre,Fecha,Total,Metodo_Pago,Estado FROM historial_ventas WHERE"
+                    + " (fecha >='" + inicioFN + "' OR '" + inicioFN + "' IS NULL)"
+                    + " AND (fecha <='" + finFN + "'OR '" + finFN + "' IS NULL)"
+                    + " AND Nombre LIKE '%" + nombre + "%'";
+            if (!estado.equals("Todos")) {
+                sql += " AND (" + estado + " IS NULL OR Estado =" + estado + ")";
+            }
+            sql += " ORDER BY Folio";
+            //System.out.println(sql);
+        } catch (ParseException ex) {
+        }
+        if (sql.isEmpty()) {
+            sql = "call vistaApartados(null , null, null)";
+        }
+        //System.out.println(sql);
+        return Miscelanea.procedimiento(sql);
+    }
 
     public static ResultSet vistaTicket(String folio) {
         String sql = "call ticketDeVenta(" + folio + ")";

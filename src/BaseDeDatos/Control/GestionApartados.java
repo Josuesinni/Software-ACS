@@ -106,6 +106,37 @@ public class GestionApartados {
         return "0.00";
     }
 
+    public static ResultSet vistaApartadosDe(String nombre, String fechaIni, String fechaFin, String estado) {
+        String OLD_FORMAT = "dd-MM-yyyy";
+        String NEW_FORMAT = "yyyy-MM-dd";
+        String inicioFN = null, finFN = null;
+        String sql = "";
+        SimpleDateFormat sdf = new SimpleDateFormat(OLD_FORMAT);
+        Date inicio, fin;
+        try {
+            inicio = sdf.parse(fechaIni);
+            fin = sdf.parse(fechaFin);
+            sdf.applyPattern(NEW_FORMAT);
+            inicioFN = sdf.format(inicio);
+            finFN = sdf.format(fin);
+            sql = "SELECT Folio,Cliente,Fecha_Inicio,Fecha_Fin,Estado FROM historial_apartados WHERE"
+                    + " (Fecha_Inicio >='" + inicioFN + "' OR '" + inicioFN + "' IS NULL)"
+                    + " AND (Fecha_Inicio <='" + finFN + "'OR '" + finFN + "' IS NULL)"
+                    + " AND Cliente LIKE '%" + nombre + "%'";
+            if (!estado.equals("Todos")) {
+                sql += " AND (" + estado + " IS NULL OR Estado =" + estado + ")";
+            }
+            sql += " ORDER BY Folio";
+            //System.out.println(sql);
+        } catch (ParseException ex) {
+        }
+        if (sql.isEmpty()) {
+            sql = "call vistaApartados(null , null, null)";
+        }
+        //System.out.println(sql);
+        return Miscelanea.procedimiento(sql);
+    }
+
     public static ResultSet vistaApartadosDe(String fechaIni, String fechaFin, String estado) {
         String OLD_FORMAT = "dd-MM-yyyy";
         String NEW_FORMAT = "yyyy-MM-dd";
@@ -129,7 +160,7 @@ public class GestionApartados {
         if (sql.isEmpty()) {
             sql = "call vistaApartados(null , null, null)";
         }
-        System.out.println(sql);
+        //System.out.println(sql);
         return Miscelanea.procedimiento(sql);
     }
 
@@ -141,7 +172,7 @@ public class GestionApartados {
             sql += "null)";
         }
 
-        System.out.println(sql);
+        //System.out.println(sql);
         return Miscelanea.procedimiento(sql);
     }
 
@@ -160,13 +191,16 @@ public class GestionApartados {
         return Miscelanea.ejecucionActualizacion(sql) != 0;
     }
 
-    public static void cambiarApartadoAVenta(String folio) {
-        String sql = "call registrarVenta(1,(SELECT Cliente from historial_apartados where Folio='" + folio + "'));";
+    public static void cambiarApartadoAVenta(String folio, String nombre, boolean metodoPago) {
+        String sql = "call registrarVenta(1,'" + nombre + "'," + metodoPago + ")";
+        System.out.println(sql);
         if (Miscelanea.ejecucionActualizacion(sql) != 0) {
             sql = "SELECT * FROM detalle_apartado where id_apartado=" + folio + " AND estado=1";
+            System.out.println(sql);
             ResultSet rs = Miscelanea.procedimiento(sql);
             try {
                 while (rs.next()) {
+                    //System.out.println("item");
                     String sentencia = "call registrarDetalleVenta(" + (Integer.parseInt(GestionVentas.getFolio()) - 1) + ",'" + rs.getInt(2) + "'," + rs.getDouble(4) + "," + rs.getInt(3) + "," + rs.getDouble(5) + ")";
                     System.out.println(sentencia);
                     Miscelanea.ejecucionActualizacion(sentencia);

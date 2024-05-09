@@ -8,6 +8,11 @@ import java.awt.Toolkit;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 import Utilidades.Fuente;
+import java.awt.image.BufferedImage;
+import java.io.IOException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import javax.imageio.ImageIO;
 import javax.swing.BorderFactory;
 import javax.swing.UIManager;
 
@@ -27,6 +32,10 @@ public class Ventana extends JFrame {
         setUndecorated(false);
         setVisible(true);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        try {
+            setIconImage(ImageIO.read(getClass().getResourceAsStream("/res/imagenes/iu/icon.png")));
+        } catch (IOException ex) {
+        }
     }
 
     public void movimientoEntreVentanas(Dimension d) {

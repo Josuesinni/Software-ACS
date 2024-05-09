@@ -32,7 +32,6 @@ public class CantidadCellEditor extends DefaultCellEditor {
 
         numberModel = (SpinnerNumberModel) input.getModel();
         numberModel.setMinimum(1);
-        numberModel.setMaximum(10);
         JFormattedTextField txt = ((JSpinner.DefaultEditor) input.getEditor()).getTextField();
         ((NumberFormatter) txt.getFormatter()).setAllowsInvalid(false);
         txt.addKeyListener(new KeyAdapter() {
@@ -87,26 +86,23 @@ public class CantidadCellEditor extends DefaultCellEditor {
     }
 
     private void inputChange() {
-        int cant = Integer.parseInt(input.getValue().toString());
-        DecimalFormat df = new DecimalFormat("##0.##");
-        int max = getMaximumInput();
-        if (cant > max) {
-            input.setValue(max);
-            cant = max;
+        if (item!=null) {
+            int cant = Integer.parseInt(input.getValue().toString());
+            DecimalFormat df = new DecimalFormat("##0.##");
+            if (cant != item.getQty()) {
+                item.setQty(cant);
+                item.setTotal(item.getPrice() * cant);
+                table.setValueAt("$ " + df.format(item.getTotal()), row, 3);
+                event.inputChanged();
+            }
         }
-        if (cant != item.getQty()) {
-            item.setQty(cant);
-            item.setTotal(item.getPrice() * cant);
-            table.setValueAt("$ " + df.format(item.getTotal()), row, 3);
-            event.inputChanged();
-        }
+        
     }
 
     public void setMaximumInput(int max) {
         numberModel.setMaximum(max);
     }
-
-    public int getMaximumInput() {
-        return Integer.parseInt(numberModel.getMaximum().toString());
+    public void eliminarItem(){
+        item=null;
     }
 }

@@ -26,6 +26,8 @@ import static java.awt.Window.Type.POPUP;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.beans.PropertyChangeEvent;
@@ -73,6 +75,13 @@ public class HistorialVentas extends JPanel {
         JTextFieldRounded txtBuscar = new JTextFieldRounded("Folio, Nombre del cliente", 20, Recursos.FUENTE_GENERAL);
         txtBuscar.setLocation(100, 180);
         txtBuscar.setSize(460, 50);
+        txtBuscar.addKeyListener(new KeyAdapter() {
+            @Override
+            public void keyReleased(KeyEvent e) {
+                String estado = cmbEstado.getSelectedItem().toString();                
+                Miscelanea.CargarTabla(GestionVentas.vistaVentasDe(txtBuscar.getText(),lblFechaIni.getText(), lblFechaFin.getText(), estado), tblLista, true);
+            }
+        });
         add(txtBuscar);
         
         JLabel lblEstado = new JLabel("Estado", JLabel.LEFT);
@@ -90,6 +99,7 @@ public class HistorialVentas extends JPanel {
         ((JLabel) cmbEstado.getRenderer()).setHorizontalAlignment(JLabel.CENTER);
         cmbEstado.addItemListener((e) -> {
             if (e.getStateChange() == ItemEvent.SELECTED) {
+                txtBuscar.setText("");
                 String estado = cmbEstado.getSelectedItem().toString();
                 Miscelanea.CargarTabla(GestionVentas.vistaVentasDe(lblFechaIni.getText(), lblFechaFin.getText(),estado), tblLista, true);
                 tblLista.clearSelection();

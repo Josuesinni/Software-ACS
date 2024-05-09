@@ -63,7 +63,13 @@ public class CatalogoApartados extends JPanel {
         JTextFieldRounded txtBuscar = new JTextFieldRounded("Buscar por folio, nombre...", 20, Recursos.FUENTE_GENERAL);
         txtBuscar.setLocation(100, 180);
         txtBuscar.setSize(460, 50);
-        
+        txtBuscar.addKeyListener(new KeyAdapter() {
+            @Override
+            public void keyReleased(KeyEvent e) {
+                String estado = cmbEstado.getSelectedItem().toString();                
+                Miscelanea.CargarTabla(GestionApartados.vistaApartadosDe(txtBuscar.getText(),txtCiclo1.getText(), txtCiclo2.getText(), estado), tblLista, true);
+            }
+        });
         add(txtBuscar);
 
         String hoy = Calendar.getInstance().get(Calendar.DATE) + "-" + (Calendar.getInstance().get(Calendar.MONTH) + 1) + "-" + Calendar.getInstance().get(Calendar.YEAR);
@@ -74,7 +80,7 @@ public class CatalogoApartados extends JPanel {
         txtCiclo1.setBorder(null);
         txtCiclo1.setHorizontalAlignment(SwingConstants.CENTER);
         txtCiclo1.setEditable(false);
-
+        txtCiclo1.setText(Miscelanea.getFechaMin("fecha_inicio", "apartado"));
         add(txtCiclo1);
 
         JLabel lblBarra = new JLabel("/", SwingConstants.CENTER);
@@ -90,6 +96,7 @@ public class CatalogoApartados extends JPanel {
         txtCiclo2.setBorder(null);
         txtCiclo2.setHorizontalAlignment(SwingConstants.CENTER);
         txtCiclo2.setEditable(false);
+        txtCiclo2.setText(hoy);
         add(txtCiclo2);
 
         MenuFecha mf = new MenuFecha();
@@ -143,6 +150,7 @@ public class CatalogoApartados extends JPanel {
         ((JLabel) cmbEstado.getRenderer()).setHorizontalAlignment(JLabel.CENTER);
         cmbEstado.addItemListener((e) -> {
             if (e.getStateChange() == ItemEvent.SELECTED) {
+                txtBuscar.setText("");
                 String estado = cmbEstado.getSelectedItem().toString();
                 if (txtCiclo1.getText().isEmpty() && txtCiclo2.getText().isEmpty()) {
                     Miscelanea.CargarTabla(GestionApartados.buscarApartadoPorEstado(estado), tblLista, true);
@@ -437,7 +445,7 @@ public class CatalogoApartados extends JPanel {
                             }
                             GestionApartados.vistaApartados(tblLista);
                         }
-                    }else{
+                    } else {
                         new Notificacion(1, "Error el apartado ya se ha pagado en su totalidad o se ha cancelado", false);
                     }
 
@@ -488,7 +496,7 @@ public class CatalogoApartados extends JPanel {
                     String folio = tblLista.getValueAt(tblLista.getSelectedRow(), 0).toString();
                     System.out.println((Double.parseDouble(GestionApartados.getTotal(folio)) - Double.parseDouble(GestionPagos.obtenerPagado(folio))));
                     if ((Double.parseDouble(GestionApartados.getTotal(folio)) - Double.parseDouble(GestionPagos.obtenerPagado(folio))) == 0.00) {
-                        GestionApartados.cambiarApartadoAVenta(folio);
+                        GestionApartados.cambiarApartadoAVenta(folio,tblLista.getValueAt(tblLista.getSelectedRow(), 1).toString(),cmbMetodoPago.getSelectedIndex()!=0);
                     }
                     GestionApartados.vistaApartados(tblLista);
                 }
@@ -503,12 +511,15 @@ public class CatalogoApartados extends JPanel {
     }
 
     private void actualizacion() {
-        String folio = tblLista.getValueAt(tblLista.getSelectedRow(), 0).toString();
-        lblTotal.setText("$" + GestionApartados.getTotal(folio));
-        lblAnticipo.setText("$" + GestionPagos.obtenerAnticipo(folio));
-        lblPgdo.setText("$" + GestionPagos.obtenerPagado(folio));
-        double pagado = lblPgdo.getText().isEmpty() ? 0.00 : Double.parseDouble(lblPgdo.getText().substring(1));
-        double total = lblTotal.getText().isEmpty() ? 0.00 : Double.parseDouble(lblTotal.getText().substring(1));
-        lblPdte.setText("$" + String.format("%.2f", total - pagado));
+        if (tblLista.getSelectedRow() != -1) {
+            String folio = tblLista.getValueAt(tblLista.getSelectedRow(), 0).toString();
+            lblTotal.setText("$" + GestionApartados.getTotal(folio));
+            lblAnticipo.setText("$" + GestionPagos.obtenerAnticipo(folio));
+            lblPgdo.setText("$" + GestionPagos.obtenerPagado(folio));
+            double pagado = lblPgdo.getText().isEmpty() ? 0.00 : Double.parseDouble(lblPgdo.getText().substring(1));
+            double total = lblTotal.getText().isEmpty() ? 0.00 : Double.parseDouble(lblTotal.getText().substring(1));
+            lblPdte.setText("$" + String.format("%.2f", total - pagado));
+        }
+
     }
 }
