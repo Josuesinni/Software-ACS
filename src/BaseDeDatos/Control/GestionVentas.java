@@ -145,6 +145,7 @@ public class GestionVentas {
 
     public static ResultSet vistaTicket(String folio) {
         String sql = "call ticketDeVenta(" + folio + ")";
+        System.out.println(sql);
         return Miscelanea.procedimiento(sql);
     }
 

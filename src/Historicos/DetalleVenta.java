@@ -12,6 +12,9 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.sql.SQLException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.swing.ImageIcon;
 import javax.swing.JDialog;
 import javax.swing.JLabel;
@@ -27,7 +30,7 @@ public class DetalleVenta extends JDialog {
     String cliente;
     String fecha;
     JLabel lblTotal;
-    
+
     public DetalleVenta(boolean mode, String folio, String cliente, String fecha) {
         super(vta, mode);
         this.folio = folio;
@@ -108,17 +111,18 @@ public class DetalleVenta extends JDialog {
     JTable tblLista;
 
     public void tabla() {
-        String[] cabecera = {"Nombre del producto", "Uds.", "Precio", "Subtotal",""};
+        String[] cabecera = {"Nombre del producto", "Uds.", "Precio", "Subtotal"};
         Object[][] datos = {};
-        int[] tamColumna = {270, 10, 30, 30,30};
-        boolean[] colEditables = {false, false,false,false,true};
-        tblLista = Recursos.crearTabla(cabecera, datos, tamColumna, colEditables, 4);
+        int[] tamColumna = {270, 10, 30, 30, 30};
+        boolean[] colEditables = {false, false, false, false};
+        tblLista = Recursos.crearTabla(cabecera, datos, tamColumna, colEditables, 5);
+        
         Miscelanea.CargarTabla(GestionVentas.vistaTicket(folio), tblLista, false);
         setSignoPeso();
         JScrollPane jsp1 = new JScrollPane();
         jsp1.setBackground(new java.awt.Color(255, 255, 255));
         jsp1.setSize(new java.awt.Dimension(getWidth() - 100, 220));
-        jsp1.setPreferredSize(new java.awt.Dimension(getWidth() - 100, 220));
+        jsp1.setPreferredSize(new java.awt.Dimension(getWidth() - 100, 400));
         jsp1.setRowHeaderView(null);
         DefaultTableCellRenderer centerRenderer = new DefaultTableCellRenderer();
         centerRenderer.setHorizontalAlignment(JLabel.CENTER);
@@ -134,17 +138,19 @@ public class DetalleVenta extends JDialog {
         jsp1.getViewport().setBackground(tblLista.getBackground());
         pnl.add(jsp1);
     }
+
     public void setSignoPeso() {
         for (int i = 0; i < tblLista.getRowCount(); i++) {
             tblLista.setValueAt("$" + tblLista.getValueAt(i, 2), i, 2);
             tblLista.setValueAt("$" + tblLista.getValueAt(i, 3), i, 3);
         }
     }
-    public void setTotal(){
-        double total=0.00;
+
+    public void setTotal() {
+        double total = 0.00;
         for (int i = 0; i < tblLista.getRowCount(); i++) {
-            total+=Double.parseDouble(tblLista.getValueAt(i, 3).toString().substring(1));
+            total += Double.parseDouble(tblLista.getValueAt(i, 3).toString().substring(1));
         }
-        lblTotal.setText("$"+total);
+        lblTotal.setText("$" + total);
     }
 }
