@@ -2,6 +2,7 @@ package Apartados;
 
 import Menus.MenuAjustarAnticipo;
 import BaseDeDatos.Control.GestionApartados;
+import BaseDeDatos.Control.GestionClientes;
 import BaseDeDatos.Control.GestionPagos;
 import BaseDeDatos.Control.GestionProductos;
 import BaseDeDatos.Control.Miscelanea;
@@ -28,6 +29,8 @@ import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.ItemEvent;
+import java.awt.event.ItemListener;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
@@ -86,7 +89,6 @@ public class NuevoApartado extends JPanel {
         txtBuscar.setLocation(100, 180);
         txtBuscar.setSize(460, 50);
         txtBuscar.addKeyListener(new KeyAdapter() {
-            //txtBuscar.addKeyListener(new KeyAdapter() {
             public void keyTyped(KeyEvent e) {
                 if (e.getKeyChar() == 10) {
                     String producto = txtBuscar.getText();
@@ -299,8 +301,21 @@ public class NuevoApartado extends JPanel {
         txtCliente = new JTextFieldRounded("Nombre del cliente", 20, Recursos.FUENTE_GENERAL);
         txtCliente.setLocation(1100, 180);
         txtCliente.setSize(280, 50);
+        txtCliente.addKeyListener(new KeyAdapter() {
+            public void keyReleased(KeyEvent e) {
+                if (!txtCliente.getText().isEmpty()) {
+                    buscadorClientes.actualizarLista(GestionClientes.busquedaCliente(txtCliente.getText(), "nombre"));
+                }
+                if (txtCliente.getText().isEmpty()) {
+                    buscadorProductos.hidePopUp();
+                }
+            }
+        });
         add(txtCliente);
-
+        buscadorClientes = new Buscador();
+        buscadorClientes.changePopupSize(280, 60);
+        buscadorClientes.setBuscar(txtCliente);
+        
         JButtonRounded btnBuscarCliente = new JButtonRounded(20);
         btnBuscarCliente.setLocation(1380, 180);
         btnBuscarCliente.setSize(50, 50);
@@ -390,6 +405,20 @@ public class NuevoApartado extends JPanel {
         cmbMetodoPago.setBackground(new Color(255, 214, 153));
         cmbMetodoPago.setColorOver(new Color(255, 224, 163));
         ((JLabel) cmbMetodoPago.getRenderer()).setHorizontalAlignment(JLabel.CENTER);
+        ItemListener listener = (e) -> {
+            if (e.getStateChange() == ItemEvent.SELECTED) {
+                if (e.getSource() == cmbMetodoPago) {
+                    if (e.getItem().toString().equals("Transferencia")) {
+                        txtImporte.setEditable(false);
+                        txtImporte.setText(lblTotal.getText().substring(1));
+                        actualizarCambio();
+                    } else {
+                        txtImporte.setEditable(true);
+                    }
+                }
+            }
+        };
+        cmbMetodoPago.addItemListener(listener);
         add(cmbMetodoPago);
 
         JLabel lblImporte = new JLabel("Importe", JLabel.LEFT);
@@ -483,7 +512,7 @@ public class NuevoApartado extends JPanel {
     private void actualizarCambio() {
         double anticipo = Double.parseDouble(lblAnticipo.getText().substring(1));
         double importe = txtImporte.getText().isEmpty() ? 0.00 : Double.parseDouble(txtImporte.getText());
-        if (importe - anticipo > 0) {
+        if (importe - anticipo >= 0) {
             lblCambio.setForeground(Color.black);
             lblCambio.setText("$" + (String.format("%.2f", (importe - anticipo))));
         } else {

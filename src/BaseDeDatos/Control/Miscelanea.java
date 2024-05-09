@@ -1,6 +1,7 @@
 package BaseDeDatos.Control;
 
 import BaseDeDatos.ConexionBD;
+import Calendario.DateChooser;
 import Principal.Ventana;
 import SwingModificado.JComboBoxCustom;
 import java.awt.Dimension;
@@ -103,5 +104,21 @@ public class Miscelanea {
         } catch (ParseException ex) {
         }
         return new String[]{inicioFN, finFN};
+    }
+    public static String getFechaMin(String columna,String tabla) {
+        DateChooser dc = new DateChooser();
+        try {
+            String sql = "select min("+columna+") from "+tabla;
+            ResultSet rs = Miscelanea.procedimiento(sql);
+            while (rs.next()) {
+                String fecha = rs.getString(1);
+                String y = fecha.substring(0, 4);
+                String m = fecha.substring(5, 7);
+                String d = fecha.substring(8, 10);
+                return d + "-" + m + "-" + y;
+            }
+        } catch (SQLException ex) {
+        }
+        return dc.getSelectedDate().getDay() + "-" + dc.getSelectedDate().getMonth() + "-" + dc.getSelectedDate().getYear();
     }
 }

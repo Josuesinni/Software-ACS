@@ -108,11 +108,11 @@ public class DetalleVenta extends JDialog {
     JTable tblLista;
 
     public void tabla() {
-        String[] cabecera = {"Nombre del producto", "Uds.", "Precio", "Subtotal"};
+        String[] cabecera = {"Nombre del producto", "Uds.", "Precio", "Subtotal",""};
         Object[][] datos = {};
-        int[] tamColumna = {300, 10, 30, 30};
-        boolean[] colEditables = {false, false,false,false};
-        tblLista = Recursos.crearTabla(cabecera, datos, tamColumna, colEditables, 5);
+        int[] tamColumna = {270, 10, 30, 30,30};
+        boolean[] colEditables = {false, false,false,false,true};
+        tblLista = Recursos.crearTabla(cabecera, datos, tamColumna, colEditables, 4);
         Miscelanea.CargarTabla(GestionVentas.vistaTicket(folio), tblLista, false);
         setSignoPeso();
         JScrollPane jsp1 = new JScrollPane();

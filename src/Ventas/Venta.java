@@ -489,6 +489,7 @@ public class Venta extends JPanel {
                     dft.removeRow(row);
                     eliminando = false;
                     actualizarTotal();
+                    actualizarCambio();
                 }
             }
 

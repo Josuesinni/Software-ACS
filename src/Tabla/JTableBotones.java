@@ -37,6 +37,8 @@ public class JTableBotones extends JPanel {
                 botonesActivos = new boolean[]{false, false, false, false, true};
             case -1 -> //Ver, eliminar
                  botonesActivos = new boolean[]{false, true, false, false, true};
+            case -2 -> //ver, historial, eliminar
+                botonesActivos = new boolean[]{false, true, true, false, true};
         }
     }
 

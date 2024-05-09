@@ -324,6 +324,8 @@ public class MenuFecha extends JDialog {
                 case 0:
                     if (cualquierFecha.isSelected()) {
                         Miscelanea.CargarTabla(GestionApartados.buscarApartadoPorEstado(estado), tblLista, true);
+                        fechas[0]=(Miscelanea.getFechaMin("fecha_inicio","apartado"));
+                        txtCiclo1.setText(Miscelanea.getFechaMin("fecha_inicio","apartado"));
                     } else {
                         System.out.println(fechas[0] + " " + fechas[1]);
                         Miscelanea.CargarTabla(GestionApartados.vistaApartadosDe(fechas[0], fechas[1], estado), tblLista, true);
@@ -341,7 +343,7 @@ public class MenuFecha extends JDialog {
                     break;
                 case 2:
                     if (cualquierFecha.isSelected()) {
-                        fechas[0] = GestionVentas.getFechaMin();
+                        fechas[0] = Miscelanea.getFechaMin("fecha","venta");
                         Miscelanea.CargarTabla(GestionVentas.vistaVentas(), tblLista, true);
                         for (int i = 0; i < tblLista.getRowCount(); i++) {
                             tblLista.setValueAt("$" + tblLista.getValueAt(i, 3), i, 3);

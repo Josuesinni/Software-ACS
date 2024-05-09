@@ -22,8 +22,6 @@ import java.awt.Dimension;
 import static java.awt.Window.Type.POPUP;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.InputMethodEvent;
-import java.awt.event.InputMethodListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.awt.event.KeyAdapter;
@@ -44,6 +42,7 @@ public class CatalogoApartados extends JPanel {
     JTextFieldRounded txtCiclo1, txtCiclo2;
     JComboBoxCustom cmbEstado;
     JComboBoxCustom cmbMetodoPago;
+
     public CatalogoApartados(Dimension d) {
         setSize(d);
         setBackground(Color.white);
@@ -64,10 +63,11 @@ public class CatalogoApartados extends JPanel {
         JTextFieldRounded txtBuscar = new JTextFieldRounded("Buscar por folio, nombre...", 20, Recursos.FUENTE_GENERAL);
         txtBuscar.setLocation(100, 180);
         txtBuscar.setSize(460, 50);
+        
         add(txtBuscar);
 
         String hoy = Calendar.getInstance().get(Calendar.DATE) + "-" + (Calendar.getInstance().get(Calendar.MONTH) + 1) + "-" + Calendar.getInstance().get(Calendar.YEAR);
-        txtCiclo1 = new JTextFieldRounded(hoy, 20, Recursos.FUENTE_GENERAL);
+        txtCiclo1 = new JTextFieldRounded(Miscelanea.getFechaMin("fecha_inicio", "apartado"), 20, Recursos.FUENTE_GENERAL);
         txtCiclo1.setLocation(1104, 100);
         txtCiclo1.setSize(120, 40);
         txtCiclo1.setBackground(new Color(239, 232, 232));
@@ -189,9 +189,9 @@ public class CatalogoApartados extends JPanel {
         String[] cabecera = new String[]{"Folio", "Nombre del cliente", "Inicio", "Fin", "Estado", ""};
         boolean[] colEditables = {false, false, false, false, false, true};
         int[] tamColumnas = {10, 300, 40, 40, 40, 100};
-        tblLista = Recursos.crearTabla(cabecera, datos, tamColumnas, colEditables, 1);
+        tblLista = Recursos.crearTabla(cabecera, datos, tamColumnas, colEditables, -2);
         GestionApartados.vistaApartados(tblLista);
-        AccionTabla(tblLista, 1);
+        AccionTabla(tblLista, -2);
         JScrollPane jsp1 = new JScrollPane();
         jsp1.setBackground(new java.awt.Color(255, 255, 255));
         jsp1.setSize(new java.awt.Dimension(900, 380));
@@ -207,19 +207,29 @@ public class CatalogoApartados extends JPanel {
         add(jsp1);
         tblLista.getSelectionModel().addListSelectionListener((e) -> {
             try {
+                txtImporte.setText("0.00");
+                int id_apartado = Integer.parseInt(tblLista.getValueAt(tblLista.getSelectedRow(), 0).toString());
+                int metodo_pago = GestionPagos.getMetodoPagoUsado(id_apartado);
+                cmbMetodoPago.setSelectedIndex(metodo_pago);
+                if (metodo_pago == 1) {
+                    txtImporte.setEditable(false);
+                    txtImporte.setText(lblPdte.getText().substring(1));
+                    actualizarCambio();
+                } else {
+                    txtImporte.setEditable(true);
+                }
+                cmbMetodoPago.setEnabled(false);
                 if (tblLista.getValueAt(tblLista.getSelectedRow(), 4).toString().equals("Cancelado") || (tblLista.getValueAt(tblLista.getSelectedRow(), 4).toString().equals("Pagado"))) {
                     btnCobrar.setEnabled(false);
                     txtImporte.setEnabled(false);
                 } else {
                     btnCobrar.setEnabled(true);
                     txtImporte.setEnabled(true);
-                    int id_apartado=Integer.parseInt(tblLista.getValueAt(tblLista.getSelectedRow(), 0).toString());
-                    int metodo_pago=GestionPagos.getMetodoPagoUsado(id_apartado);
-                    cmbMetodoPago.setSelectedIndex(metodo_pago);
-                    cmbMetodoPago.setEnabled(false);
                 }
                 actualizacion();
             } catch (ArrayIndexOutOfBoundsException ex) {
+                cmbMetodoPago.setEnabled(true);
+                cmbMetodoPago.setSelectedIndex(0);
             }
         });
     }
@@ -320,20 +330,6 @@ public class CatalogoApartados extends JPanel {
         cmbMetodoPago.setSize(150, 40);
         cmbMetodoPago.setBackground(new Color(255, 214, 153));
         ((JLabel) cmbMetodoPago.getRenderer()).setHorizontalAlignment(JLabel.CENTER);
-        ItemListener listener = (e) -> {
-            if (e.getStateChange() == ItemEvent.SELECTED) {
-                if (e.getSource() == cmbMetodoPago) {
-                    if (e.getItem().toString().equals("Transferencia")) {
-                        txtImporte.setEditable(false);
-                        txtImporte.setText(lblPdte.getText().substring(1));
-                        actualizarCambio();
-                    } else {
-                        txtImporte.setEditable(true);
-                    }
-                }
-            }
-        };
-        cmbMetodoPago.addItemListener(listener);
         add(cmbMetodoPago);
 
         JLabel lblImporte = new JLabel("Importe", JLabel.LEFT);
@@ -425,21 +421,26 @@ public class CatalogoApartados extends JPanel {
         AccionEnJTable event = new AccionEnJTable() {
             @Override
             public void editar(int row) {
-                cp.cargarPanel(new EditarApartado(getSize(), tblLista.getValueAt(row, 0).toString()));
-                cp.siguientePanel(cp.panelActual());
+                /*cp.cargarPanel(new EditarApartado(getSize(), tblLista.getValueAt(row, 0).toString()));
+                cp.siguientePanel(cp.panelActual());*/
             }
 
             @Override
             public void eliminar(int row) {
                 Notificacion n = new Notificacion(2, "¿Está segura de cancelar el apartado de " + tblLista.getValueAt(row, 1) + "?", true);
                 if (n.getRespuesta()) {
-                    if (GestionApartados.cancelarApartado(Integer.parseInt(tblLista.getValueAt(row, 0).toString()))) {
-                        new Notificacion(0, "Se ha cancelado el apartado exitosamente", false);
-                        if (tblLista.isEditing()) {
-                            tblLista.getCellEditor().stopCellEditing();
+                    if (tblLista.getValueAt(row, 4).toString().equals("Activo")) {
+                        if (GestionApartados.cancelarApartado(Integer.parseInt(tblLista.getValueAt(row, 0).toString()))) {
+                            new Notificacion(0, "Se ha cancelado el apartado exitosamente", false);
+                            if (tblLista.isEditing()) {
+                                tblLista.getCellEditor().stopCellEditing();
+                            }
+                            GestionApartados.vistaApartados(tblLista);
                         }
-                        GestionApartados.vistaApartados(tblLista);
+                    }else{
+                        new Notificacion(1, "Error el apartado ya se ha pagado en su totalidad o se ha cancelado", false);
                     }
+
                 }
             }
 
@@ -482,7 +483,7 @@ public class CatalogoApartados extends JPanel {
         double cantidad = restante - importe;
         if (importe > 0.00) {
             if (cantidad >= 0) {
-                if (GestionPagos.registrarPago(tblLista.getValueAt(tblLista.getSelectedRow(), 0).toString(), importe,(cmbMetodoPago.getSelectedIndex() != 0))) {
+                if (GestionPagos.registrarPago(tblLista.getValueAt(tblLista.getSelectedRow(), 0).toString(), importe, (cmbMetodoPago.getSelectedIndex() != 0))) {
                     new Notificacion(0, "Pago registrado correctamente", false);
                     String folio = tblLista.getValueAt(tblLista.getSelectedRow(), 0).toString();
                     System.out.println((Double.parseDouble(GestionApartados.getTotal(folio)) - Double.parseDouble(GestionPagos.obtenerPagado(folio))));
@@ -492,7 +493,7 @@ public class CatalogoApartados extends JPanel {
                     GestionApartados.vistaApartados(tblLista);
                 }
             } else {
-                if (GestionPagos.registrarPago(tblLista.getValueAt(tblLista.getSelectedRow(), 0).toString(), restante,(cmbMetodoPago.getSelectedIndex() != 0))) {
+                if (GestionPagos.registrarPago(tblLista.getValueAt(tblLista.getSelectedRow(), 0).toString(), restante, (cmbMetodoPago.getSelectedIndex() != 0))) {
                     new Notificacion(0, "Pago registrado correctamente", false);
                 }
             }

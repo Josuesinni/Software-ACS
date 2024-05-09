@@ -25,6 +25,7 @@ import java.awt.Dimension;
 import static java.awt.Window.Type.POPUP;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.ItemEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.beans.PropertyChangeEvent;
@@ -39,7 +40,7 @@ import javax.swing.JTable;
 
 public class HistorialVentas extends JPanel {
 
-    private JComboBoxCustom cmbPeriodo;
+    private JComboBoxCustom cmbEstado;
     private JLabel lblFechaIni, lblFechaFin;
     JTable tblLista;
 
@@ -73,7 +74,30 @@ public class HistorialVentas extends JPanel {
         txtBuscar.setLocation(100, 180);
         txtBuscar.setSize(460, 50);
         add(txtBuscar);
-        mf.setDialogPosition(710, 240);
+        
+        JLabel lblEstado = new JLabel("Estado", JLabel.LEFT);
+        lblEstado.setLocation(600, 172);
+        lblEstado.setSize(150, 20);
+        lblEstado.setFont(getFuente(1, 1, 12));
+        add(lblEstado);
+        
+        cmbEstado = new JComboBoxCustom<>();
+        cmbEstado.setFont(getFuente(1, 1, 16));
+        cmbEstado.setModel(new javax.swing.DefaultComboBoxModel<>(new String[]{"Todos", "Activo", "Inactivo"}));
+        cmbEstado.setLocation(600, 190);
+        cmbEstado.setSize(140, 40);
+        cmbEstado.setBackground(new Color(255, 214, 153));
+        ((JLabel) cmbEstado.getRenderer()).setHorizontalAlignment(JLabel.CENTER);
+        cmbEstado.addItemListener((e) -> {
+            if (e.getStateChange() == ItemEvent.SELECTED) {
+                String estado = cmbEstado.getSelectedItem().toString();
+                Miscelanea.CargarTabla(GestionVentas.vistaVentasDe(lblFechaIni.getText(), lblFechaFin.getText(),estado), tblLista, true);
+                tblLista.clearSelection();
+            }
+        });
+        add(cmbEstado);
+        
+        mf.setDialogPosition(760, 250);
         mf.resizeJDialog(240, 170);
         mf.addWindowFocusListener(new WindowAdapter() {
             @Override
@@ -93,7 +117,7 @@ public class HistorialVentas extends JPanel {
         btn.setColor(new Color(255, 214, 153));
         btn.setColorClick(new Color(255, 224, 163));
         btn.setSize(240, 40);
-        btn.setLocation(710, 180);
+        btn.setLocation(760, 190);
         btn.setFont(Recursos.FUENTE_GENERAL);
         btn.addActionListener(new ActionListener() {
             @Override
@@ -167,7 +191,7 @@ public class HistorialVentas extends JPanel {
         separador1.setLocation(15, 60);
         pr.add(separador1);
         DateChooser dc = new DateChooser();
-        lblFechaIni = new JLabel(GestionVentas.getFechaMin(), JLabel.CENTER);
+        lblFechaIni = new JLabel(Miscelanea.getFechaMin("fecha","venta"), JLabel.CENTER);
         lblFechaIni.setLocation(0, 80);
         lblFechaIni.setSize(150, 30);
         lblFechaIni.setFont(getFuente(1, 0, 22));
